@@ -38,6 +38,8 @@ export default function App() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [viewMode, setViewMode] = useState<'slideshow' | 'grid'>('slideshow');
+  const [subredditsAfter, setSubredditsAfter] = useState<Record<string, string | null>>({});
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,18 +56,60 @@ export default function App() {
   const fetchAllMedia = useCallback(async () => {
     setIsLoading(true);
     const allItems: MediaItem[] = [];
+    const newAfters: Record<string, string | null> = {};
     
     for (const sub of subreddits) {
-      const { items } = await fetchSubredditMedia(sub);
-      allItems.push(...items);
+      // Fetch 2 pages (up to 200 items) per subreddit
+      let currentAfter: string | null = null;
+      for (let i = 0; i < 2; i++) {
+        const { items, after } = await fetchSubredditMedia(sub, currentAfter || undefined);
+        allItems.push(...items);
+        currentAfter = after;
+        if (!after) break;
+      }
+      newAfters[sub] = currentAfter;
     }
     
     // Shuffle items
     const shuffled = allItems.sort(() => Math.random() - 0.5);
     setMedia(shuffled);
+    setSubredditsAfter(newAfters);
     setCurrentIndex(0);
     setIsLoading(false);
   }, [subreddits]);
+
+  const loadMoreMedia = useCallback(async () => {
+    if (isFetchingMore) return;
+    setIsFetchingMore(true);
+    
+    const moreItems: MediaItem[] = [];
+    const newAfters = { ...subredditsAfter };
+    
+    for (const sub of subreddits) {
+      const after = subredditsAfter[sub];
+      if (after) {
+        const { items, after: nextAfter } = await fetchSubredditMedia(sub, after);
+        moreItems.push(...items);
+        newAfters[sub] = nextAfter;
+      }
+    }
+    
+    if (moreItems.length > 0) {
+      // Shuffle new items before appending
+      const shuffledMore = moreItems.sort(() => Math.random() - 0.5);
+      setMedia(prev => [...prev, ...shuffledMore]);
+      setSubredditsAfter(newAfters);
+    }
+    
+    setIsFetchingMore(false);
+  }, [subreddits, subredditsAfter, isFetchingMore]);
+
+  // Infinite loading trigger
+  useEffect(() => {
+    if (media.length > 0 && currentIndex >= media.length - 10 && !isFetchingMore) {
+      loadMoreMedia();
+    }
+  }, [currentIndex, media.length, isFetchingMore, loadMoreMedia]);
 
   useEffect(() => {
     fetchAllMedia();
