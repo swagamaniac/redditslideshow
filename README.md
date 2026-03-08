@@ -7,7 +7,6 @@ A beautiful, immersive, and snappier slideshow application for browsing images a
 ## 🚀 Features
 
 - **Immersive Slideshow**: High-quality display of images and videos.
-- **RedGifs Support**: Seamless playback of RedGifs content via embedded players.
 - **Multi-Subreddit Feed**: Combine multiple subreddits into a single shuffled stream.
 - **Customizable Timer**: Adjust slide duration from 2s to 30s via settings.
 - **Grid View**: Quickly browse all loaded media in a gallery layout.
