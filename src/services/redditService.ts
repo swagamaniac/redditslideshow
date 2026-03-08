@@ -27,7 +27,7 @@ export async function fetchSubredditMedia(subreddit: string, after?: string): Pr
           type = 'video';
           isEmbed = true;
           const id = post.url.split('/').pop()?.split('-')[0];
-          mediaUrl = `https://www.redgifs.com/ifr/${id}?autoplay=1&muted=1`;
+          mediaUrl = `https://www.redgifs.com/ifr/${id}?autoplay=1&muted=0`;
         } 
         // Handle Reddit Videos
         else if (post.is_video && post.media?.reddit_video) {
