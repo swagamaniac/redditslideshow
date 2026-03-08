@@ -145,7 +145,7 @@ export default function App() {
   const currentMedia = media[currentIndex];
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-black text-white font-sans overflow-hidden flex flex-col">
+    <div ref={containerRef} className="h-screen bg-black text-white font-sans overflow-hidden flex flex-col">
       {/* Header / Controls */}
       <header className={`z-20 p-4 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent transition-opacity duration-300 ${isFullscreen && isPlaying ? 'opacity-0 hover:opacity-100' : 'opacity-100'}`}>
         <div className="flex items-center gap-4">
@@ -190,7 +190,7 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 relative flex items-center justify-center">
+      <main className="flex-1 relative flex items-center justify-center overflow-hidden">
         {isLoading ? (
           <div className="flex flex-col items-center gap-4">
             <RefreshCw size={48} className="animate-spin text-white/20" />
