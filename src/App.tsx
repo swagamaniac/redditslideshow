@@ -95,6 +95,30 @@ export default function App() {
     };
   }, [isPlaying, media.length, nextSlide, viewMode, slideDuration]);
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't navigate if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (viewMode === 'slideshow') {
+        if (e.key === 'ArrowRight') {
+          nextSlide();
+        } else if (e.key === 'ArrowLeft') {
+          prevSlide();
+        } else if (e.key === ' ') {
+          e.preventDefault(); // Prevent scrolling
+          setIsPlaying(prev => !prev);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [viewMode, nextSlide, prevSlide]);
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       containerRef.current?.requestFullscreen();
@@ -196,7 +220,6 @@ export default function App() {
                 <video 
                   src={currentMedia.url} 
                   autoPlay 
-                  muted 
                   loop 
                   className="max-w-full max-h-full object-contain shadow-2xl rounded-lg"
                   onEnded={nextSlide}
