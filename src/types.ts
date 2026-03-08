@@ -12,6 +12,11 @@ export interface RedditPost {
       fallback_url: string;
       hls_url?: string;
     };
+    oembed?: {
+      html?: string;
+      provider_name?: string;
+      thumbnail_url?: string;
+    };
   };
   preview?: {
     images: Array<{
