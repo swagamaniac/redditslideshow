@@ -1,7 +1,7 @@
 import { RedditResponse, MediaItem } from '../types';
 
 export async function fetchSubredditMedia(subreddit: string, after?: string): Promise<{ items: MediaItem[], after: string | null }> {
-  const redditUrl = `https://www.reddit.com/r/${subreddit}/hot.json?limit=50${after ? `&after=${after}` : ''}`;
+  const redditUrl = `https://www.reddit.com/r/${subreddit}/hot.json?limit=100${after ? `&after=${after}` : ''}`;
   
   // Try direct fetch first, then fallback to proxy if it fails
   const fetchWithFallback = async (useProxy = false) => {
