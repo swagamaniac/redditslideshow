@@ -1,13 +1,29 @@
 import { RedditResponse, MediaItem } from '../types';
 
 export async function fetchSubredditMedia(subreddit: string, after?: string): Promise<{ items: MediaItem[], after: string | null }> {
-  const url = `https://www.reddit.com/r/${subreddit}/hot.json?limit=50${after ? `&after=${after}` : ''}`;
+  const redditUrl = `https://www.reddit.com/r/${subreddit}/hot.json?limit=50${after ? `&after=${after}` : ''}`;
   
-  try {
+  // Try direct fetch first, then fallback to proxy if it fails
+  const fetchWithFallback = async (useProxy = false) => {
+    const url = useProxy 
+      ? `https://corsproxy.io/?${encodeURIComponent(redditUrl)}`
+      : redditUrl;
+      
     const response = await fetch(url);
-    if (!response.ok) throw new Error('Failed to fetch from Reddit');
-    
-    const data: RedditResponse = await response.json();
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+    return response.json();
+  };
+
+  try {
+    let data: RedditResponse;
+    try {
+      // Attempt 1: Direct fetch (works in most modern browsers)
+      data = await fetchWithFallback(false);
+    } catch (e) {
+      console.warn(`Direct fetch failed for r/${subreddit}, trying proxy...`, e);
+      // Attempt 2: Proxy fetch (for private windows/strict privacy settings)
+      data = await fetchWithFallback(true);
+    }
     
     const items: MediaItem[] = data.data.children
       .map(child => child.data)
