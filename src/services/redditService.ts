@@ -1,7 +1,11 @@
 import { RedditResponse, MediaItem } from '../types';
 
-export async function fetchSubredditMedia(subreddit: string, after?: string): Promise<{ items: MediaItem[], after: string | null }> {
-  const redditUrl = `https://www.reddit.com/r/${subreddit}/hot.json?limit=100${after ? `&after=${after}` : ''}`;
+export async function fetchSubredditMedia(source: string, after?: string): Promise<{ items: MediaItem[], after: string | null }> {
+  const isUser = source.startsWith('u/');
+  const name = isUser ? source.slice(2) : source;
+  const redditUrl = isUser
+    ? `https://www.reddit.com/user/${name}/submitted.json?limit=100${after ? `&after=${after}` : ''}`
+    : `https://www.reddit.com/r/${name}/hot.json?limit=100${after ? `&after=${after}` : ''}`;
   
   // Try direct fetch first, then fallback to proxy if it fails
   const fetchWithFallback = async (useProxy = false) => {
@@ -20,7 +24,7 @@ export async function fetchSubredditMedia(subreddit: string, after?: string): Pr
       // Attempt 1: Direct fetch (works in most modern browsers)
       data = await fetchWithFallback(false);
     } catch (e) {
-      console.warn(`Direct fetch failed for r/${subreddit}, trying proxy...`, e);
+      console.warn(`Direct fetch failed for ${source}, trying proxy...`, e);
       // Attempt 2: Proxy fetch (for private windows/strict privacy settings)
       data = await fetchWithFallback(true);
     }
@@ -104,7 +108,7 @@ export async function fetchSubredditMedia(subreddit: string, after?: string): Pr
       after: data.data.after
     };
   } catch (error) {
-    console.error(`Error fetching r/${subreddit}:`, error);
+    console.error(`Error fetching ${source}:`, error);
     return { items: [], after: null };
   }
 }

@@ -175,12 +175,22 @@ export default function App() {
 
   const addSubreddit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanSub = newSub.trim().toLowerCase();
+    let cleanSub = newSub.trim().toLowerCase();
+    // Normalize user prefixes to canonical u/username format
+    if (cleanSub.startsWith('/u/')) cleanSub = 'u/' + cleanSub.slice(3);
+    else if (cleanSub.startsWith('user/')) cleanSub = 'u/' + cleanSub.slice(5);
+    else if (cleanSub.startsWith('/user/')) cleanSub = 'u/' + cleanSub.slice(6);
+    // Strip r/ prefix — subreddits are stored without it
+    else if (cleanSub.startsWith('r/')) cleanSub = cleanSub.slice(2);
+    else if (cleanSub.startsWith('/r/')) cleanSub = cleanSub.slice(3);
+
     if (cleanSub && !subreddits.includes(cleanSub)) {
       setSubreddits([...subreddits, cleanSub]);
       setNewSub('');
     }
   };
+
+  const formatSource = (sub: string) => sub.startsWith('u/') ? sub : `r/${sub}`;
 
   const removeSubreddit = (sub: string) => {
     setSubreddits(subreddits.filter(s => s !== sub));
@@ -199,7 +209,7 @@ export default function App() {
           </h1>
           <div className="hidden md:flex items-center gap-2 text-xs text-white/60 uppercase tracking-widest">
             {subreddits.map(sub => (
-              <span key={sub} className="px-2 py-1 bg-white/10 rounded-full">r/{sub}</span>
+              <span key={sub} className="px-2 py-1 bg-white/10 rounded-full">{formatSource(sub)}</span>
             ))}
           </div>
         </div>
@@ -242,12 +252,12 @@ export default function App() {
           </div>
         ) : media.length === 0 ? (
           <div className="text-center p-8">
-            <p className="text-white/40 mb-4">No media found in the selected subreddits.</p>
-            <button 
+            <p className="text-white/40 mb-4">No media found in the selected sources.</p>
+            <button
               onClick={() => setShowSettings(true)}
               className="px-6 py-2 bg-white text-black rounded-full font-bold hover:bg-white/90 transition-colors"
             >
-              Add Subreddits
+              Add Sources
             </button>
           </div>
         ) : viewMode === 'slideshow' ? (
@@ -379,13 +389,13 @@ export default function App() {
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-xs font-mono uppercase tracking-widest text-white/40 mb-3">Subreddits</label>
+                  <label className="block text-xs font-mono uppercase tracking-widest text-white/40 mb-3">Subreddits & Users</label>
                   <form onSubmit={addSubreddit} className="flex gap-2 mb-4">
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={newSub}
                       onChange={(e) => setNewSub(e.target.value)}
-                      placeholder="e.g. earthporn"
+                      placeholder="e.g. earthporn or u/username"
                       className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 focus:outline-none focus:border-red-500 transition-colors"
                     />
                     <button type="submit" className="p-2 bg-white text-black rounded-lg hover:bg-white/90">
@@ -395,7 +405,7 @@ export default function App() {
                   <div className="flex flex-wrap gap-2">
                     {subreddits.map(sub => (
                       <div key={sub} className="flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-sm">
-                        <span>r/{sub}</span>
+                        <span>{formatSource(sub)}</span>
                         <button onClick={() => removeSubreddit(sub)} className="hover:text-red-500">
                           <X size={14} />
                         </button>
